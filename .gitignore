@@ -1,0 +1,8 @@
+.DS_Store
+.cache
+.xmake
+build
+compile_commands.json
+.stylua.toml
+.prettierrc.json
+.clang-format

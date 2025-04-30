@@ -1,0 +1,8 @@
+#!/bin/bash
+# Get the directory where the script is located
+DIR=$(dirname "$(realpath "$0")")
+# Change to the script's directory
+cd "$DIR" || exit 1
+
+lua example/main.lua
+
