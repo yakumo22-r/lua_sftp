@@ -1,6 +1,7 @@
 #ifndef YKM22_LUA_SFTP_SFTP_LOG_MGR_HPP
 #define YKM22_LUA_SFTP_SFTP_LOG_MGR_HPP
 
+#include <mutex>
 #include <string>
 #include <string_view>
 #include <vector>

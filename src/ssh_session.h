@@ -2,7 +2,8 @@
 #define YKM22_LUA_SFTP_SSH_SESSION_HPP
 
 #include <cstddef>
-#include <libssh/libssh.h>
+#include <mutex>
+#include <libssh/sftp.h>
 #include "config_manager.h"
 namespace lua_sftp
 {

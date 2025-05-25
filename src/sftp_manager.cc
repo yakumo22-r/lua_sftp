@@ -1,6 +1,6 @@
+#include "sftp_session.h"
 #include "config_manager.h"
 #include "fmt/base.h"
-#include "sftp_session.h"
 
 #include "log_mgr.hpp"
 #include <thread>
@@ -63,7 +63,7 @@ void SFTPTaskManager::work()
     Log::Buf log;
     static int _id = 0;
     int id = _id++;
-    log.debug("start work id:{}", id).apply();
+    log.debug("start work id({})", id).apply();
 
     while (true)
     {

@@ -14,6 +14,7 @@ void error_exit(ssh_session session, const char* message) {
 
 // test ssh with sftp
 int main(){
+    // ssh_init();
     const char* remote_host = "local.yakumo22.home";
 
     ssh_session session = ssh_new();
@@ -39,6 +40,7 @@ int main(){
 
     ssh_disconnect(session);
     ssh_free(session);
+    // ssh_finalize();
     return 0;
 }
 

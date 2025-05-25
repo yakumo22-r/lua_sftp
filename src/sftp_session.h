@@ -11,7 +11,6 @@
 #include <condition_variable>
 #include <fcntl.h>
 
-#include <libssh/sftp.h>
 #include <fmt/format.h>
 
 #include "ssh_session.h"
