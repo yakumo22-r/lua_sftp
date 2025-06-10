@@ -2,6 +2,7 @@
 #define YKM22_LUA_SFTP_HPP
 
 #include "ykm22lib/symbol_lua.hpp"
+#include <string>
 #include <vector>
 
 namespace lua_sftp

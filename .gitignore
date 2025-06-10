@@ -6,3 +6,4 @@ compile_commands.json
 .stylua.toml
 .prettierrc.json
 .clang-format
+.ykm22_nvim

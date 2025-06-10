@@ -1,7 +1,6 @@
 add_requires("libssh")
 add_requires("fmt")
 add_requires("openssl")
-set_arch("x86_64")
 
 target("test_ssh")
     set_kind("binary")
@@ -12,7 +11,19 @@ target("test_ssh")
 target("lua_sftp")
     set_kind("shared")
     set_languages("cxx17")
-    add_files("src/*.cc")
+    add_files(
+        -- "src/config_manager.cc", 
+        -- "src/log_mgr.cc",
+        -- "src/ssh_session.cc",
+        -- "src/sftp_session.cc",
+        -- "src/sftp_manager.cc",
+        -- "src/lua_sftp.cc"
+        "src/*.cc"
+    )
+    if is_plat("macosx") then
+        set_arch("x86_64")
+    end
+
     add_includedirs("include")
     add_packages("libssh")
     add_packages("openssl")

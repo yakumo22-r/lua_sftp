@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <stack>
 
 #include "config_manager.h"
 #include "fmt/base.h"
@@ -10,41 +11,44 @@
 #include "libssh/sftp.h"
 #include "log_mgr.hpp"
 
+#ifndef _WIN32
+#include <sys/stat.h>
+#else
+#define S_IRWXU 0700
+#endif
+
 namespace fs = std::filesystem;
 
 namespace lua_sftp
 {
 
-SFTPSession::SFTPSession(std::string_view target_name)
-    : target_name(target_name), cfg_version(-1), sftp(nullptr), working(false), login_id(0),login()
-{
-}
+SFTPSession::SFTPSession(std::string_view target_name) : target_name(target_name), cfg_version(-1), sftp(nullptr), working(false), login_id(0), login() {}
 
 bool SFTPSession::_connect()
 {
-    if(sftp){ sftp_free(sftp); }
+    if (sftp) { sftp_free(sftp); }
 
     sftp = sftp_new(login->get_ssh());
 
-    std::string_view hostname=login->get_hostname();
-    std::string_view uname=login->get_username();
-    int port=login->get_port();
+    std::string_view hostname = login->get_hostname();
+    std::string_view uname = login->get_username();
+    int port = login->get_port();
 
     if (sftp == nullptr)
     {
-        tick_log.error("SFTP create failed. host: {}:{}, username:{}, {}", hostname,port, uname, ssh_get_error(sftp));
+        tick_log.error("SFTP create failed. host({}:{}) username({}), {}", hostname, port, uname, ssh_get_error(sftp));
         return false;
     }
 
     if (sftp_init(sftp) != SSH_OK)
     {
-        tick_log.error("SFTP init failed. host: {}:{}, username:{}, err: {}", hostname,port, uname, sftp_get_error(sftp));
+        tick_log.error("SFTP init failed. host({}:{}) username({}), err: {}", hostname, port, uname, sftp_get_error(sftp));
         sftp_free(sftp);
-        sftp=nullptr;
+        sftp = nullptr;
         return false;
     }
 
-    tick_log.info("SSH authentication success. host: {}:{}, username:{}", hostname,port, uname).apply();
+    tick_log.info("SFTP init success. host({}:{}) username({})", hostname, port, uname).apply();
     return true;
 }
 
@@ -90,17 +94,18 @@ bool SFTPSession::tick_task()
         tasks.pop();
     }
 
-    if (ConfigManager::Ins().azure_config(cfg_version, target_name, cfg)==ConfigManager::CfgLoginRefresh) {
+    if (ConfigManager::Ins().azure_config(cfg_version, target_name, cfg) == ConfigManager::CfgLoginRefresh)
+    {
         login = SSHSession::Get(cfg.login);
-        login_id=-1;
+        login_id = -1;
     }
 
+
     int login_id = login->check_login();
-    if(this->login_id!=login_id){
+    if (this->login_id != login_id)
+    {
         this->login_id = login_id;
-        if(!_connect()){
-            return false;
-        }
+        if (!_connect()) { return false; }
     }
 
     // TODO: error & message
@@ -183,7 +188,8 @@ inline std::string ensure_remote_dir(sftp_session sftp, const std::string& remot
 int SFTPSession::_upload_file(std::string_view path)
 {
     std::string abs_local = fs::absolute(fs::path(cfg.local_root) / path).string();
-    std::string abs_remote = fs::path(cfg.remote_root) / path;
+    std::string abs_remote = (fs::path(cfg.remote_root) / path).generic_string();
+
 
     std::ifstream file(abs_local, std::ios::binary);
     if (!file)
@@ -214,7 +220,7 @@ int SFTPSession::_upload_file(std::string_view path)
         }
 
         int r;
-        tick_log.warn("failed to open remote file, {}, path: {}", sftp_error_str(error_code, &r), abs_remote);
+        tick_log.warn("failed to open remote files({}), path({})", sftp_error_str(error_code, &r), abs_remote);
         return r;
     }
 
@@ -224,7 +230,7 @@ int SFTPSession::_upload_file(std::string_view path)
         if (sftp_write(remote_file, buffer, file.gcount()) != file.gcount())
         {
             int code = sftp_get_error(sftp);
-            tick_log.error("SFTP write error, code: {}, path: {}", code, path);
+            tick_log.error("SFTP write error, code({}), path({})", code, path);
             sftp_close(remote_file);
             return code;
         }
@@ -232,7 +238,7 @@ int SFTPSession::_upload_file(std::string_view path)
 
     sftp_close(remote_file);
 
-    tick_log.info("upload success. local: {}, remote: {}", path, abs_remote);
+    tick_log.info("upload success. local({}), remote({})", path, abs_remote);
     return 0;
 }
 
@@ -246,8 +252,8 @@ bool SFTPSession::_upload_files(const FileOps& ops)
 
         do {
             int r = _upload_file(path);
-            if (                                //
-                (login->is_login()) || //
+            if (                        //
+                (!login->is_login()) || //
                 r == ERR_CONNECT)
             {
                 attempt++;
@@ -258,7 +264,7 @@ bool SFTPSession::_upload_files(const FileOps& ops)
                 }
                 else
                 {
-                    tick_log.warn("upload failed, SSH connection lost. attempt {} of {}", attempt, attempt_num).apply();
+                    tick_log.warn("upload failed, SSH connection lost. attempt({} of {})", attempt, attempt_num).apply();
                     std::this_thread::sleep_for(std::chrono::milliseconds(500));
                     login->clear_login();
                     login_id = login->check_login();
@@ -283,7 +289,7 @@ bool SFTPSession::downloadFile(std::string_view remotePath, std::string_view loc
         return false;
     }
 
-    std::ofstream localFile(localPath, std::ios::binary);
+    std::ofstream localFile(localPath.data(), std::ios::binary);
     if (!localFile.is_open())
     {
         // std::cerr << "Failed to open local file: " << localPath << std::endl;

@@ -1,16 +1,18 @@
+#pragma once
 #ifndef YKM22_LUA_SFTP_CONFIG_MANAGER_H
 #define YKM22_LUA_SFTP_CONFIG_MANAGER_H
 
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <fstream>
-#include <sstream>
+// #include <fstream>
+// #include <sstream>
 
 #include <openssl/md5.h>
 #include <fmt/format.h>
+#include <variant>
 
-#include "fmt/base.h"
+// #include "fmt/base.h"
 #include "ykm22lib/symbol_lua.hpp"
 
 namespace lua_sftp

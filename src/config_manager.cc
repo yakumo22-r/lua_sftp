@@ -1,4 +1,7 @@
 #include "config_manager.h"
+#include <fstream>
+#include <iomanip>
+#include <sstream>
 
 namespace lua_sftp
 {
@@ -67,7 +70,7 @@ std::string parse_config(lua_State* L, SFTPConfig& c, int tbl, std::string_view 
 
 int ConfigManager::check_load_config(lua_State* L)
 {
-    const char* filename = luaL_checkstring(L, 1);
+    const char * filename = luaL_checkstring(L, 1);
 
     std::ifstream file(filename, std::ios::binary);
     MD5_CTX md5Context;
@@ -150,7 +153,7 @@ int ConfigManager::azure_config(int& version, std::string_view name, SFTPConfig&
     const auto& c = configs.at(name.data());
     if (version != this->version)
     {
-        fmt::println("azure_config, {}, {}", cfg.login.hostname, c.login.hostname);
+        // fmt::println("azure_config, {}, {}", cfg.login.hostname, c.login.hostname);
         version = this->version;
         if (cfg.login != c.login)
         {

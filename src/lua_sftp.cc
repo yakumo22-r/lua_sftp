@@ -1,13 +1,22 @@
+/*
+* lualib for sftp
+* 
+*/
+#include "fmt/base.h"
+#include "libssh/libssh.h"
+#include "sftp_session.h"
 #include "lua_sftp.hpp"
 #include "config_manager.h"
-#include "fmt/base.h"
 #include "fmt/format.h"
 #include "log_mgr.hpp"
-#include "sftp_session.h"
 #include "ykm22lib/symbol_lua.hpp"
+
+#include <cassert>
+#include <fmt/format.h>
+
 #include <cstring>
 #include <iostream>
-#include <unistd.h>
+// #include <unistd.h>
 
 using namespace lua_sftp;
 
@@ -57,10 +66,9 @@ static int lua_handle_logs(lua_State* L)
     return 1;
 }
 
-static int test_1(lua_State* L)
+static int finalize(lua_State* L)
 {
-    usleep(50 * 1000);
-    // std::cout << "50ms:" << lua_gettop(L) << std::endl;
+    ssh_finalize();
     return 1;
 }
 
@@ -113,11 +121,22 @@ static int lua_check_load_config(lua_State* L)
 
 extern "C"
 {
+    __declspec(dllexport)
     int luaopen_lua_sftp(lua_State* L)
     {
         Log::Buf log;
         log.info("load lua_sftp").apply();
         LuaBindings luaBind = LuaBindings();
+        fmt::println("load lua_sftp {} {}", (void*)test(), load_lua_symbol("luaL_setfuncs"));
+        ssh_init();
+
+        // auto h = ykm22::get_proc_libh();
+        // void* symbol = ykm22::get_symbol_addr(h, "lua_createtable");
+        // fmt::print("errot {} {}",(void*)h, symbol);
+        // assert(symbol && "fatal error");
+        // lua_getglobal(L, "print");
+        // lua_pushstring(L, "hahaha");                   
+        // lua_pcall(L, 1, 0, 0);
 
         int r = luaL_newmetatable(L, "SFTPSession");
         lua_pushvalue(L, -1);
@@ -133,8 +152,6 @@ extern "C"
 
         luaBind.add_regs({//
                           {"handle_logs", lua_handle_logs},
-                          {"test_1", test_1},
-                          {"test_2", test_2},
                           {"new_sftp_session", lua_new_sftp_session},
                           {"check_load_config", lua_check_load_config}});
         luaBind.bind(L);

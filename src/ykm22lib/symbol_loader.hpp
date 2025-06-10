@@ -2,6 +2,7 @@
 #define YKM22_SYMBOL_LOADER_HPP
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <cassert>
 #include <windows.h>
 namespace ykm22
 {
@@ -9,9 +10,11 @@ typedef HMODULE libh_t;
 inline libh_t load_lib(const char* libname) { return LoadLibraryA(libname); }
 inline void* get_symbol_addr(libh_t libhandle, const char* symbol) { return GetProcAddress(libhandle, symbol); }
 inline void unload_lib(libh_t libhandle) { FreeLibrary(libhandle); }
-inline libh_t get_proc_libh(){
-    MODULE hModule = GetModuleHandle(NULL);
-    assert(hModule!=NULL && "fatal error,hModule is null");
+inline libh_t get_proc_libh(bool mute = true){
+    libh_t hModule = GetModuleHandle(NULL);
+    if(!mute){
+        assert(hModule!=NULL && "fatal error,hModule is null");
+    }
     return hModule;
 }
 } // namespace ykm22
