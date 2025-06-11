@@ -3,6 +3,7 @@
 #define YKM22_LUA_SFTP_CONFIG_MANAGER_H
 
 #include <string>
+#include <vector>
 #include <string_view>
 #include <unordered_map>
 // #include <fstream>
