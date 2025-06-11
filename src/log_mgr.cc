@@ -1,5 +1,6 @@
 #include "log_mgr.hpp"
 #include <vector>
+
 namespace lua_sftp
 {
 Log& Log::Ins()

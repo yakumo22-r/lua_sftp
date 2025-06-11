@@ -2,6 +2,10 @@ add_requires("libssh")
 add_requires("fmt")
 add_requires("openssl")
 
+if is_plat("macosx") then
+    set_arch("x86_64")
+end
+
 target("test_ssh")
     set_kind("binary")
     add_files("example/test_ssh.cc")
@@ -12,22 +16,40 @@ target("lua_sftp")
     set_kind("shared")
     set_languages("cxx17")
     add_files(
-        -- "src/config_manager.cc", 
-        -- "src/log_mgr.cc",
-        -- "src/ssh_session.cc",
-        -- "src/sftp_session.cc",
-        -- "src/sftp_manager.cc",
-        -- "src/lua_sftp.cc"
-        "src/*.cc"
+        "src/config_manager.cc", 
+        "src/log_mgr.cc",
+        "src/ssh_session.cc",
+        "src/sftp_session.cc",
+        "src/sftp_manager.cc",
+        "src/lua_sftp.cc"
     )
-    if is_plat("macosx") then
-        set_arch("x86_64")
-    end
 
     add_includedirs("include")
     add_packages("libssh")
     add_packages("openssl")
     add_packages("fmt")
+
+target("sftp_pip")
+    set_languages("cxx17")
+    add_files(
+        "src/sftp_pip.cc",
+        "src/sftp_pip_impl.cc"
+    )
+    if is_plat("macosx") then
+        set_arch("x86_64")
+    end
+    add_includedirs("include")
+    add_packages("libssh")
+    add_packages("openssl")
+    add_packages("fmt")
+    after_build(function (target)
+        -- Get the target file path (e.g., build output)
+        local targetfile = target:targetfile()
+        -- Copy to the project root (current directory)
+        os.cp(targetfile, ".")
+    end)
+ -- add_files()
+
 
 -- target("mylib")
 --     set_kind("shared")
